@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+.npm/
+.pnpm-store/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Data / artifacts
+*.sqlite
+*.sqlite3
+*.db
+*.faiss
+*.bm25
+*.pkl
+data/
+.cache/
+.hf_cache/
+models/
+eval_results/*.json
+!eval_results/.gitkeep
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
