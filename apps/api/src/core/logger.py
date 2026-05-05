@@ -10,10 +10,14 @@ import json
 import logging
 import sys
 import time
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Any
 
 from src.core.config import get_settings
+
+# Per-request correlation id. Middleware sets this; the formatter reads it.
+request_id_ctx: ContextVar[str] = ContextVar("request_id", default="-")
 
 _LEVEL_MAP = {
     "debug": logging.DEBUG,
@@ -26,12 +30,15 @@ _LEVEL_MAP = {
 
 class _JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
+        rid = request_id_ctx.get()
         payload: dict[str, Any] = {
             "ts": time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(record.created)),
             "level": record.levelname.lower(),
             "logger": record.name,
             "msg": record.getMessage(),
         }
+        if rid and rid != "-":
+            payload["request_id"] = rid
         if record.exc_info:
             payload["exc"] = self.formatException(record.exc_info)
         extras = {

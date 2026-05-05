@@ -42,6 +42,14 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(default="")
     answer_model: str = Field(default="claude-haiku-4-5-20251001")
     answer_max_tokens: int = Field(default=512)
+    answer_timeout_sec: float = Field(default=30.0)
+
+    # Rate limiting (per-IP token bucket on /v1/query)
+    rate_limit_capacity: int = Field(default=30)
+    rate_limit_refill_per_sec: float = Field(default=1.0)
+
+    # Request limits
+    max_upload_bytes: int = Field(default=5 * 1024 * 1024)
 
     @property
     def is_production(self) -> bool:

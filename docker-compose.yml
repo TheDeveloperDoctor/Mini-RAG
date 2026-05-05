@@ -10,16 +10,32 @@ services:
       SQLITE_PATH: /app/data/mini_rag.sqlite
       FAISS_INDEX_DIR: /app/data/faiss
       HF_HOME: /app/.hf_cache
+      API_CORS_ORIGINS: ${API_CORS_ORIGINS:-http://localhost:3000}
+    expose:
+      - "8000"
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       - api_data:/app/data
       - hf_cache:/app/.hf_cache
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2g
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
-      interval: 10s
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/readyz').status == 200 else 1)"
+      interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    networks:
+      - mini_rag
 
   web:
     build:
@@ -27,13 +43,34 @@ services:
       dockerfile: Dockerfile
     container_name: mini-rag-web
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512m
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - "wget -qO- http://localhost:3000/ >/dev/null 2>&1 || exit 1"
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on:
       api:
         condition: service_healthy
+    networks:
+      - mini_rag
 
 volumes:
   api_data:
   hf_cache:
+
+networks:
+  mini_rag:
+    driver: bridge
