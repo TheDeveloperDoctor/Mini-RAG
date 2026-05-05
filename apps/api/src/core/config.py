@@ -38,11 +38,21 @@ class Settings(BaseSettings):
     chunk_size: int = Field(default=500)
     chunk_overlap: int = Field(default=80)
 
-    # LLM
-    anthropic_api_key: str = Field(default="")
-    answer_model: str = Field(default="claude-haiku-4-5-20251001")
+    # LLM — provider-agnostic
+    answer_provider: str = Field(default="anthropic")  # "anthropic" | "openrouter"
     answer_max_tokens: int = Field(default=512)
     answer_timeout_sec: float = Field(default=30.0)
+
+    # Anthropic
+    anthropic_api_key: str = Field(default="")
+    answer_model: str = Field(default="claude-haiku-4-5-20251001")
+
+    # OpenRouter (OpenAI-compatible)
+    openrouter_api_key: str = Field(default="")
+    openrouter_model: str = Field(default="anthropic/claude-haiku-4.5")
+    openrouter_base_url: str = Field(default="https://openrouter.ai/api/v1")
+    openrouter_referer: str = Field(default="https://github.com/")
+    openrouter_app_title: str = Field(default="Mini RAG")
 
     # Rate limiting (per-IP token bucket on /v1/query)
     rate_limit_capacity: int = Field(default=30)
