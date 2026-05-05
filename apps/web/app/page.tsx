@@ -7,6 +7,7 @@ import { QueryBox } from "@/components/query-box";
 import { AnswerColumn } from "@/components/answer-column";
 import { LatencyChart } from "@/components/latency-chart";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { AnswerColumnSkeleton } from "@/components/ui/skeleton";
 import { documentsRepo } from "@/lib/api/repositories/documents";
 import { queryRepo } from "@/lib/api/repositories/query";
 import { ApiError } from "@/lib/api/client";
@@ -96,8 +97,10 @@ function ResultsGrid({
 }) {
   if (loading && !latest) {
     return (
-      <div className="rounded-xl border border-ink-800 bg-ink-900/40 p-8 text-center text-sm text-ink-400">
-        Running query through every retriever…
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <AnswerColumnSkeleton key={i} />
+        ))}
       </div>
     );
   }

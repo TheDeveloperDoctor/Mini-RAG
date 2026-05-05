@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=512"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        files: ^apps/api/(src|tests)/
+      - id: ruff-format
+        files: ^apps/api/(src|tests)/
+
+  - repo: local
+    hooks:
+      - id: no-coauthored-by-claude
+        name: block stray Claude co-author trailers
+        entry: bash -c 'if git diff --cached --name-only | xargs -r grep -l "Co-Authored-By: Claude" 2>/dev/null; then echo "Remove Co-Authored-By: Claude lines"; exit 1; fi'
+        language: system
+        pass_filenames: false

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, Form, UploadFile
 
 from src.api.deps import get_document_repo, get_ingestion_service, get_retrieval_service
 from src.api.schemas import DocumentOut, IngestResponse
+from src.core.config import get_settings
 from src.core.errors import BadRequestError, UnsupportedMediaError
 from src.repositories.document import DocumentRepository
 from src.services.ingestion import IngestionService
@@ -13,7 +14,6 @@ from src.services.retrieval import RetrievalService
 router = APIRouter(prefix="/v1/documents", tags=["documents"])
 
 _ALLOWED_SUFFIXES = {".txt", ".md", ".markdown"}
-_MAX_BYTES = 5 * 1024 * 1024  # 5 MB per file
 
 
 @router.post("", response_model=IngestResponse)
@@ -29,9 +29,10 @@ async def upload_document(
     if suffix not in _ALLOWED_SUFFIXES:
         raise UnsupportedMediaError(f"Unsupported file type: {suffix or 'unknown'}")
 
+    max_bytes = get_settings().max_upload_bytes
     raw = await file.read()
-    if len(raw) > _MAX_BYTES:
-        raise BadRequestError(f"File exceeds {_MAX_BYTES} bytes")
+    if len(raw) > max_bytes:
+        raise BadRequestError(f"File exceeds {max_bytes} bytes")
     try:
         text = raw.decode("utf-8")
     except UnicodeDecodeError as exc:
