@@ -1,0 +1,39 @@
+services:
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: mini-rag-api
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      SQLITE_PATH: /app/data/mini_rag.sqlite
+      FAISS_INDEX_DIR: /app/data/faiss
+      HF_HOME: /app/.hf_cache
+    ports:
+      - "8000:8000"
+    volumes:
+      - api_data:/app/data
+      - hf_cache:/app/.hf_cache
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: mini-rag-web
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  api_data:
+  hf_cache:
