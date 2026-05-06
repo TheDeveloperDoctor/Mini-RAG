@@ -28,14 +28,19 @@ Three things separate this from a weekend tutorial:
 
 ```bash
 cp .env.example .env
-# (optional) put your ANTHROPIC_API_KEY in .env for answer synthesis
-make install
-make seed       # loads Paul Graham essays
-make dev-api    # in one terminal
-make dev-web    # in another
+# (optional) put your ANTHROPIC_API_KEY *or* OPENROUTER_API_KEY in .env
+
+make bootstrap-uv   # one-time: installs uv (Astral's Python manager)
+make install        # uv sync for API, pnpm install for web
+make seed           # loads the eval corpus as the starter document
+make dev-api        # FastAPI on :8000  (one terminal)
+make dev-web        # Next.js on :3000  (another terminal)
 ```
 
 Open http://localhost:3000.
+
+> **No `python3-venv` or system pip needed.** `uv` ships its own Python and
+> manages `apps/api/.venv` for you. Every Python target uses `uv run …`.
 
 Or with Docker:
 

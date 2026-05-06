@@ -1,22 +1,16 @@
-.PHONY: help install install-api install-api-user install-web dev dev-api dev-web \
+.PHONY: help install install-api install-web bootstrap-uv \
+        dev-api dev-web \
         test test-api test-web lint typecheck eval seed \
         docker-build docker-up docker-down docker-logs clean \
         precommit-install ci-api ci-web
 
 # ------------------------------------------------------------------------------
-# Resolve Python entrypoint: prefer .venv if it exists, else system python3.
-# This lets the project work on systems without python3-venv installed.
+# All Python work goes through `uv` — it manages the venv, lockfile, and
+# Python interpreter. No 'python3-venv' system package required.
+# Targets that run Python use `uv run`, which executes inside apps/api/.venv
+# (created on `make install-api`).
 # ------------------------------------------------------------------------------
-VENV_DIR := $(CURDIR)/apps/api/.venv
-ifeq ($(wildcard $(VENV_DIR)/bin/python),)
-PY      := python3
-PIP     := pip3
-USE_VENV := 0
-else
-PY      := $(VENV_DIR)/bin/python
-PIP     := $(VENV_DIR)/bin/pip
-USE_VENV := 1
-endif
+UV_RUN_API := cd apps/api && uv run
 
 # ------------------------------------------------------------------------------
 # Help
@@ -24,13 +18,13 @@ endif
 help:
 	@echo "Mini RAG — make targets"
 	@echo ""
-	@echo "  install              Install API (venv) + web deps"
-	@echo "  install-api          Install API into .venv (needs python3-venv)"
-	@echo "  install-api-user     Install API system-wide via pip --user (no venv)"
-	@echo "  install-web          Install web deps via pnpm"
+	@echo "  bootstrap-uv         Install uv (curl | sh)"
+	@echo "  install              Install API (uv sync) + web (pnpm)"
+	@echo "  install-api          uv sync --all-extras inside apps/api"
+	@echo "  install-web          pnpm install inside apps/web"
 	@echo ""
-	@echo "  dev-api              Run API on :8000 (auto-detects venv)"
-	@echo "  dev-web              Run web on :3000"
+	@echo "  dev-api              Run API on :8000 via uv"
+	@echo "  dev-web              Run web on :3000 via pnpm"
 	@echo ""
 	@echo "  test                 Run all tests (API + web)"
 	@echo "  lint                 Lint API + web"
@@ -48,30 +42,29 @@ help:
 	@echo "  clean                Remove build artifacts, caches, and data"
 
 # ------------------------------------------------------------------------------
+# Bootstrap
+# ------------------------------------------------------------------------------
+bootstrap-uv:
+	@if command -v uv >/dev/null 2>&1; then \
+		echo "uv already installed: $$(uv --version)"; \
+	else \
+		echo "Installing uv via official script…"; \
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
+		echo ""; \
+		echo "uv installed. Open a new shell or run: source \$$HOME/.local/bin/env"; \
+	fi
+
+# ------------------------------------------------------------------------------
 # Install
 # ------------------------------------------------------------------------------
 install: install-api install-web
 
 install-api:
-	@if ! python3 -c 'import ensurepip' >/dev/null 2>&1; then \
-		echo ""; \
-		echo "  python3-venv is not installed. Two options:"; \
-		echo ""; \
-		echo "    1. Install it:   sudo apt install python3-venv"; \
-		echo "       then re-run:  make install-api"; \
-		echo ""; \
-		echo "    2. Skip venv:    make install-api-user"; \
-		echo "       (uses pip --user --break-system-packages)"; \
-		echo ""; \
+	@command -v uv >/dev/null 2>&1 || { \
+		echo "uv is not installed. Run 'make bootstrap-uv' first."; \
 		exit 1; \
-	fi
-	cd apps/api && python3 -m venv .venv && \
-		./.venv/bin/pip install -U pip && \
-		./.venv/bin/pip install -e ".[dev]"
-
-install-api-user:
-	cd apps/api && pip3 install --user --break-system-packages -U pip && \
-		pip3 install --user --break-system-packages -e ".[dev]"
+	}
+	cd apps/api && uv sync --all-extras
 
 install-web:
 	cd apps/web && pnpm install
@@ -80,11 +73,7 @@ install-web:
 # Dev
 # ------------------------------------------------------------------------------
 dev-api:
-	cd apps/api && PYTHONPATH=. $(PY) -m uvicorn src.main:app \
-		--host 0.0.0.0 --port 8000 --reload
-ifeq ($(USE_VENV),0)
-	@echo "(running with system python3 — set up venv via 'make install-api' if you prefer)"
-endif
+	$(UV_RUN_API) uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
 dev-web:
 	cd apps/web && pnpm dev
@@ -95,20 +84,19 @@ dev-web:
 test: test-api test-web
 
 test-api:
-	cd apps/api && PYTHONPATH=. $(PY) -m pytest -q
+	$(UV_RUN_API) pytest -q
 
 test-web:
 	cd apps/web && pnpm test --run || true
 
 lint:
-	cd apps/api && PYTHONPATH=. $(PY) -m ruff check src tests
+	$(UV_RUN_API) ruff check src tests
 	cd apps/web && pnpm lint
 
 typecheck:
-	cd apps/api && PYTHONPATH=. $(PY) -m mypy src
+	$(UV_RUN_API) mypy src
 	cd apps/web && pnpm typecheck
 
-# CI targets — fail fast, no fallback noise.
 ci-api: lint typecheck test-api
 ci-web:
 	cd apps/web && pnpm install --frozen-lockfile && pnpm lint && pnpm typecheck && pnpm build
@@ -117,10 +105,10 @@ ci-web:
 # Eval / Seed
 # ------------------------------------------------------------------------------
 eval:
-	cd apps/api && PYTHONPATH=. $(PY) -m src.eval.harness
+	$(UV_RUN_API) python -m src.eval.harness
 
 seed:
-	cd apps/api && PYTHONPATH=. $(PY) -m src.scripts.seed_pg_essays
+	$(UV_RUN_API) python -m src.scripts.seed_pg_essays
 
 # ------------------------------------------------------------------------------
 # Docker
@@ -141,8 +129,7 @@ docker-down:
 # Pre-commit
 # ------------------------------------------------------------------------------
 precommit-install:
-	$(PIP) install --user --break-system-packages pre-commit || $(PIP) install pre-commit
-	pre-commit install
+	$(UV_RUN_API) pre-commit install || pip install --user --break-system-packages pre-commit && pre-commit install
 
 # ------------------------------------------------------------------------------
 # Clean
