@@ -26,16 +26,15 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render(): ReactNode {
     if (!this.state.error) return this.props.children;
-
     if (this.props.fallback) return this.props.fallback;
 
     return (
-      <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-200">
-        <p className="font-medium">Something broke in this panel.</p>
-        <p className="mt-1 text-xs text-amber-300/80">{this.state.error.message}</p>
+      <div className="rounded-2xl border border-amber/30 bg-amber/5 p-4 text-sm text-amber">
+        <p className="font-medium text-ink-100">Something broke in this panel.</p>
+        <p className="mt-1 font-mono text-xs text-amber/80">{this.state.error.message}</p>
         <button
           onClick={this.reset}
-          className="mt-3 rounded-md border border-amber-500/40 px-3 py-1 text-xs hover:bg-amber-500/10"
+          className="mt-3 rounded-full border border-amber/40 px-3 py-1 text-xs hover:bg-amber/10 transition-colors"
         >
           Retry
         </button>

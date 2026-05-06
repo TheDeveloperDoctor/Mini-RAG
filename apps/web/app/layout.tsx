@@ -1,6 +1,20 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+  display: "swap",
+  adjustFontFallback: false,
+});
+
+const jetbrains = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+  display: "swap",
+  adjustFontFallback: false,
+});
 
 export const metadata: Metadata = {
   title: "Mini RAG — Retriever Comparison Lab",
@@ -9,43 +23,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen antialiased">
-        <header className="border-b border-ink-800/70 bg-ink-950/80 backdrop-blur sticky top-0 z-10">
-          <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 text-ink-100 font-semibold">
-              <span className="inline-block h-2 w-2 rounded-full bg-accent shadow-[0_0_12px_rgba(34,211,238,0.7)]" />
-              Mini RAG
-              <span className="ml-2 text-xs uppercase tracking-wider text-ink-400">
-                comparison lab
-              </span>
-            </Link>
-            <nav className="text-sm text-ink-300 flex gap-6">
-              <Link href="/" className="hover:text-ink-100">
-                Lab
-              </Link>
-              <Link href="/eval" className="hover:text-ink-100">
-                Eval
-              </Link>
-              <a
-                href="https://github.com"
-                className="hover:text-ink-100"
-                rel="noreferrer noopener"
-                target="_blank"
-              >
-                GitHub
-              </a>
-            </nav>
-          </div>
-        </header>
-        <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
-        <footer className="border-t border-ink-800/70 mt-16">
-          <div className="mx-auto max-w-7xl px-6 py-6 text-xs text-ink-500 flex justify-between">
-            <span>Local embeddings · BAAI/bge-small-en-v1.5</span>
-            <span>Built to be measured, not impressive.</span>
-          </div>
-        </footer>
-      </body>
+    <html lang="en" className={`${geist.variable} ${jetbrains.variable}`}>
+      <body className="antialiased font-sans">{children}</body>
     </html>
   );
 }

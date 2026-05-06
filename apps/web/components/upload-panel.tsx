@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ChangeEvent } from "react";
-import { Upload, FileText, Loader2 } from "lucide-react";
+import { Upload, FileText, Loader2, AlertTriangle } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/card";
 import { documentsRepo } from "@/lib/api/repositories/documents";
 import { ApiError } from "@/lib/api/client";
@@ -37,54 +37,71 @@ export function UploadPanel({ documents, onUploaded }: Props) {
   return (
     <Card>
       <CardBody className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-medium text-ink-100">Corpus</h3>
-            <p className="text-xs text-ink-400 mt-0.5">
-              Upload .txt or .md, or run <code className="text-ink-200">make seed</code> for a starter corpus.
-            </p>
+        <div className="flex items-baseline justify-between">
+          <div className="flex items-baseline gap-2">
+            <span className="font-mono text-[10px] tracking-[0.2em] text-mint">01</span>
+            <h3 className="text-[15px] font-semibold text-ink-100">Corpus</h3>
           </div>
-          <label
-            className={
-              "inline-flex items-center justify-center gap-2 rounded-md font-medium h-8 px-3 text-xs cursor-pointer " +
-              "bg-accent text-ink-950 hover:bg-accent-dim shadow-[0_0_18px_-6px_rgba(34,211,238,0.7)] " +
-              (uploading ? "opacity-50 cursor-not-allowed" : "")
-            }
-          >
-            <input
-              type="file"
-              accept=".txt,.md,.markdown"
-              onChange={handleFile}
-              className="hidden"
-              disabled={uploading}
-            />
-            {uploading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-            {uploading ? "Uploading…" : "Upload"}
-          </label>
+          <span className="font-mono text-[10px] tracking-[0.16em] uppercase text-ink-600">
+            {documents.length} {documents.length === 1 ? "doc" : "docs"}
+          </span>
         </div>
 
-        {error && <p className="text-xs text-amber-300">{error}</p>}
+        <p className="text-xs text-ink-400 leading-relaxed">
+          Upload <code className="font-mono text-ink-200">.txt</code> or{" "}
+          <code className="font-mono text-ink-200">.md</code>, or run{" "}
+          <code className="font-mono text-mint/90">make seed</code> for the starter corpus.
+        </p>
+
+        {error && (
+          <div className="flex items-center gap-2 rounded-lg border border-amber/30 bg-amber/5 px-3 py-2 text-xs text-amber">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
         {documents.length === 0 ? (
           <p className="text-xs text-ink-500 italic">No documents yet.</p>
         ) : (
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {documents.map((doc) => (
               <li
                 key={doc.id}
-                className="flex items-center justify-between rounded-md bg-ink-800/40 px-3 py-2 text-xs text-ink-200"
+                className="rounded-xl border border-white/[0.04] bg-white/[0.02] px-3 py-2.5 transition-colors hover:bg-white/[0.04]"
               >
-                <span className="flex items-center gap-2 truncate">
-                  <FileText className="h-3 w-3 text-ink-400 shrink-0" />
-                  <span className="truncate">{doc.name}</span>
-                </span>
-                <span className="text-ink-500 font-mono shrink-0 ml-3">
-                  {formatBytes(doc.byte_size)}
-                </span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="h-3.5 w-3.5 text-mint/70 shrink-0" />
+                    <span className="font-mono text-xs text-ink-200 truncate">{doc.name}</span>
+                  </div>
+                  <span className="font-mono text-[10px] text-ink-500 shrink-0">
+                    {formatBytes(doc.byte_size)}
+                  </span>
+                </div>
+                <div className="mt-1 ml-5 font-mono text-[10px] text-ink-600">
+                  uploaded {doc.created_at.slice(0, 10)}
+                </div>
               </li>
             ))}
           </ul>
         )}
+
+        <label
+          className={
+            "flex items-center justify-center gap-2 cursor-pointer rounded-full px-4 py-2 text-xs font-medium border border-white/[0.08] bg-white/[0.04] text-ink-100 hover:bg-white/[0.08] transition-colors " +
+            (uploading ? "opacity-50 cursor-not-allowed" : "")
+          }
+        >
+          <input
+            type="file"
+            accept=".txt,.md,.markdown"
+            onChange={handleFile}
+            className="hidden"
+            disabled={uploading}
+          />
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+          {uploading ? "Uploading…" : "Upload .txt / .md"}
+        </label>
       </CardBody>
     </Card>
   );

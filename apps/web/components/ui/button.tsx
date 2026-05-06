@@ -13,15 +13,16 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-accent text-ink-950 hover:bg-accent-dim disabled:opacity-50 shadow-[0_0_18px_-6px_rgba(34,211,238,0.7)]",
+    "text-bg bg-gradient-to-b from-mint to-mint-dim hover:brightness-110 shadow-glow-mint disabled:opacity-50",
   secondary:
-    "bg-ink-800 text-ink-100 hover:bg-ink-700 border border-ink-700 disabled:opacity-50",
-  ghost: "bg-transparent text-ink-300 hover:bg-ink-800 hover:text-ink-100",
+    "bg-white/[0.04] text-ink-100 hover:bg-white/[0.08] border border-white/[0.08] disabled:opacity-50",
+  ghost:
+    "bg-transparent text-ink-300 hover:bg-white/[0.04] hover:text-ink-100",
 };
 
 const sizeClasses: Record<Size, string> = {
   sm: "h-8 px-3 text-xs",
-  md: "h-10 px-4 text-sm",
+  md: "h-10 px-5 text-sm",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -29,7 +30,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     <button
       ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors disabled:cursor-not-allowed",
+        "inline-flex items-center justify-center gap-2 rounded-full font-medium tracking-tight transition-all duration-150 ease-out disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint/50 focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
         variantClasses[variant],
         sizeClasses[size],
         className,

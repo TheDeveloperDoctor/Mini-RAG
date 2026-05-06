@@ -11,7 +11,7 @@ import { AnswerColumnSkeleton } from "@/components/ui/skeleton";
 import { documentsRepo } from "@/lib/api/repositories/documents";
 import { queryRepo } from "@/lib/api/repositories/query";
 import { ApiError } from "@/lib/api/client";
-import type { DocumentDTO, QueryResponse } from "@/lib/types";
+import type { DocumentDTO, MethodResult, QueryResponse } from "@/lib/types";
 
 export default function HomePage() {
   const [documents, setDocuments] = useState<DocumentDTO[]>([]);
@@ -52,16 +52,23 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <section>
-        <h1 className="text-2xl font-semibold text-ink-100">Retriever Comparison Lab</h1>
-        <p className="text-sm text-ink-400 mt-1 max-w-3xl">
-          One question, four retrievers, side by side. Look at the latency badges and the chunk
-          scores — the cost of each retrieval choice is visible. <span className="text-ink-300">No vibes.</span>
+        <p className="font-mono text-[11px] tracking-[0.24em] uppercase text-mint">
+          Retriever comparison lab
+        </p>
+        <h1 className="mt-2 text-[40px] font-semibold tracking-tight text-ink-100 leading-[1.05]">
+          One question.{" "}
+          <span className="text-ink-400">Five retrievers.</span>{" "}
+          <span className="text-mint">Side by side.</span>
+        </h1>
+        <p className="mt-4 max-w-2xl text-ink-300 text-[15px] leading-relaxed">
+          Look at the latency badges and the chunk scores — the cost of every retrieval choice is
+          on the page. <span className="text-ink-100">No vibes. Receipts only.</span>
         </p>
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-5">
         <ErrorBoundary>
           <UploadPanel documents={documents} onUploaded={refreshDocuments} />
         </ErrorBoundary>
@@ -71,8 +78,8 @@ export default function HomePage() {
       </div>
 
       {error && (
-        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4" />
+        <div className="rounded-2xl border border-amber/30 bg-amber/[0.06] px-4 py-3 text-sm text-amber flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
           {error}
         </div>
       )}
@@ -106,16 +113,27 @@ function ResultsGrid({
   }
   if (!latest) {
     return (
-      <div className="rounded-xl border border-dashed border-ink-800 bg-ink-900/30 p-8 text-center text-sm text-ink-500">
-        Upload (or seed) a corpus, ask a question. Each retriever will appear here side-by-side.
+      <div className="rounded-2xl border border-dashed border-white/[0.08] bg-white/[0.02] p-10 text-center">
+        <p className="font-mono text-[10px] tracking-[0.2em] uppercase text-ink-600">empty bench</p>
+        <p className="mt-2 text-sm text-ink-400">
+          Upload (or seed) a corpus, ask a question. Each retriever appears here, in parallel.
+        </p>
       </div>
     );
   }
+
+  const fastestId = pickFastest(latest.results);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4">
       {latest.results.map((r) => (
-        <AnswerColumn key={r.method} result={r} />
+        <AnswerColumn key={r.method} result={r} fastest={r.method === fastestId} />
       ))}
     </div>
   );
+}
+
+function pickFastest(results: MethodResult[]): string | null {
+  if (results.length === 0) return null;
+  return results.reduce((a, b) => (b.latency_ms < a.latency_ms ? b : a)).method;
 }

@@ -18,11 +18,11 @@ export function formatBytes(bytes: number): string {
 }
 
 export const METHOD_COLORS: Record<string, string> = {
-  naive: "#f59e0b",
-  faiss_flat: "#22d3ee",
-  faiss_ivf: "#a78bfa",
-  bm25: "#34d399",
-  hybrid: "#f472b6",
+  naive: "#FBBF24",
+  faiss_flat: "#6EE7B7",
+  faiss_ivf: "#A78BFA",
+  bm25: "#34D399",
+  hybrid: "#F472B6",
 };
 
 export const METHOD_LABELS: Record<string, string> = {
