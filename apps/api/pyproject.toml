@@ -37,6 +37,22 @@ dev = [
 where = ["."]
 include = ["src*"]
 
+[tool.uv]
+package = true
+
+# CPU-only PyTorch — sentence-transformers brings torch in, but the default
+# pip wheels ship ~3GB of NVIDIA CUDA libraries we never use. Pin to the
+# CPU index so we get the small (~150MB) wheel instead.
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
+torchaudio = [{ index = "pytorch-cpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
